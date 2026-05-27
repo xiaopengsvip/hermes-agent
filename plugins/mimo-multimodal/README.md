@@ -4,19 +4,14 @@ Hermes Agent plugin for **image, audio, and video understanding** via Xiaomi MiM
 
 ## Features
 
-- 🖼️ **Image Analysis** — Description, OCR, explanation, information extraction
-- 🎵 **Audio Analysis** — Transcription, description, summarization, translation
-- 🎬 **Video Analysis** — Scene description, summarization, OCR, action analysis
-
-### Advanced Features
-
-- **Local file support** — Auto base64 encoding for files under 50MB
-- **Large file support** — Temp HTTP server for video files up to 300MB
-- **Smart fps tuning** — Auto-adjusts sampling rate based on video duration
-- **Multi-image support** — Multiple images in single request
-- **Format validation** — Magic bytes detection + extension whitelist
-- **Audio extraction** — Extract audio track from video via ffmpeg
-- **Token estimation** — Preview token usage before sending
+- 🖼️ **Image Analysis** — Description, OCR, code review, UI analysis
+- 🎵 **Audio Analysis** — Transcription, summarization, meeting notes
+- 🎬 **Video Analysis** — Scene description, tutorial breakdown, code/UI demos
+- 🎭 **Multi-modal** — Combine images, audio, video in single request
+- 📦 **Batch Processing** — Parallel analysis of multiple files
+- 💾 **Caching** — File hash-based result caching (24h TTL)
+- 📊 **Structured Output** — JSON/table format support
+- 🌊 **Streaming** — Real-time output for long content
 
 ## Requirements
 
@@ -41,87 +36,172 @@ Set your Xiaomi MiMo API key in `~/.hermes/.env`:
 XIAOMI_API_KEY=your_api_key_here
 ```
 
-Or set the environment variable:
+## Tools
 
-```bash
-export XIAOMI_API_KEY=your_api_key_here
-```
+### 1. image_understand 🖼️
 
-### Custom Base URL (optional)
+Analyze images with AI.
 
-If you need to use a different API endpoint:
+**Presets:**
 
-```bash
-XIAOMI_BASE_URL=https://token-plan-sgp.xiaomimimo.com/v1
-```
+| Category | Preset | Description |
+|----------|--------|-------------|
+| General | `describe` | Detailed image description |
+| General | `ocr` | Extract all text from image |
+| General | `explain` | Explain meaning/context |
+| General | `extract_info` | Extract structured data |
+| General | `caption` | Generate image caption |
+| Code | `code_review` | Analyze code, find bugs, suggest improvements |
+| Code | `code_explain` | Explain what code does |
+| Code | `code_convert` | Convert code to other languages |
+| UI/UX | `ui_review` | Review UI design quality |
+| UI/UX | `ui_describe` | Describe UI components |
+| UI/UX | `ui_improve` | Suggest UI improvements |
+| UI/UX | `figma_to_code` | Generate code from design |
+| UI/UX | `screenshot_to_code` | Generate HTML/CSS from screenshot |
 
-## Usage
-
-### Image Understanding
-
-```python
-# Basic description
-image_understand(source="path/to/image.jpg")
-
-# OCR (extract text)
-image_understand(source="screenshot.png", prompt="ocr")
-
-# Custom prompt
-image_understand(source="photo.jpg", prompt="What brand logos are visible in this image?")
-```
-
-**Presets:** `describe`, `ocr`, `explain`, `compare`, `extract_info`, `caption`
-
-**Supported formats:** JPEG, PNG, GIF, WebP, BMP
-
-### Audio Understanding
+**Examples:**
 
 ```python
-# Transcription
-audio_understand(source="recording.mp3")
+# Code review
+image_understand(source="screenshot.png", prompt="code_review")
 
-# Summarization
-audio_understand(source="meeting.wav", prompt="summarize")
+# UI analysis
+image_understand(source="design.png", prompt="ui_review")
 
-# Translation
-audio_understand(source="speech.flac", prompt="translate")
+# Generate code from design
+image_understand(source="figma-export.png", prompt="screenshot_to_code", output_format="json")
 ```
 
-**Presets:** `transcribe`, `describe`, `summarize`, `translate`, `extract_info`
+### 2. audio_understand 🎵
 
-**Supported formats:** MP3, WAV, FLAC, M4A, OGG, AAC, WMA
+Analyze audio files.
 
-### Video Understanding
+**Presets:**
+
+| Preset | Description |
+|--------|-------------|
+| `transcribe` | Full transcription |
+| `describe` | Detailed audio description |
+| `summarize` | Audio summary |
+| `translate` | Transcribe + translate to Chinese |
+| `extract_info` | Extract key information |
+| `meeting_notes` | Structured meeting minutes |
+| `lecture_notes` | Study notes from lecture |
+
+**Examples:**
 
 ```python
-# Basic description
-video_understand(source="clip.mp4")
+# Meeting transcription
+audio_understand(source="meeting.mp3", prompt="meeting_notes")
 
-# Scene breakdown
-video_understand(source="movie.mkv", prompt="scenes")
+# Streaming for long audio
+audio_understand(source="lecture.wav", prompt="lecture_notes", stream=True)
+```
+
+### 3. video_understand 🎬
+
+Analyze video files.
+
+**Presets:**
+
+| Preset | Description |
+|--------|-------------|
+| `describe` | Detailed scene description |
+| `summarize` | Video summary |
+| `scenes` | Scene-by-scene breakdown |
+| `ocr` | Extract text/subtitles |
+| `action` | Action analysis |
+| `count` | Count people/objects |
+| `tutorial_steps` | Tutorial step breakdown |
+| `code_demo` | Code demo analysis |
+| `ui_demo` | UI interaction analysis |
+
+**Examples:**
+
+```python
+# Tutorial breakdown
+video_understand(source="tutorial.mp4", prompt="tutorial_steps")
+
+# Code demo analysis
+video_understand(source="coding-stream.mp4", prompt="code_demo", media_resolution="max")
 
 # With audio extraction
 video_understand(source="interview.mp4", extract_audio=True)
-
-# Custom fps
-video_understand(source="surveillance.mp4", fps=0.5)
 ```
 
-**Presets:** `describe`, `summarize`, `scenes`, `ocr`, `action`, `count`
+### 4. multimodal_understand 🎭
 
-**Supported formats:** MP4, MOV, AVI, WMV, MKV, WEBM, FLV
+Analyze multiple media files together in one request.
 
-## Token Usage
+**Examples:**
 
-The plugin automatically estimates token usage for video files:
+```python
+# Compare images
+multimodal_understand(
+    sources=[
+        {"source": "before.png", "type": "image"},
+        {"source": "after.png", "type": "image"}
+    ],
+    prompt="Compare these two screenshots and describe the differences"
+)
 
-| Duration | Auto fps | Estimated Tokens |
-|----------|----------|------------------|
-| < 10s    | 5.0      | ~3,000           |
-| < 1min   | 2.0      | ~7,000           |
-| < 5min   | 1.0      | ~35,000          |
-| < 10min  | 0.5      | ~35,000          |
-| 10min+   | 0.2      | ~14,000          |
+# Analyze video with separate audio
+multimodal_understand(
+    sources=[
+        {"source": "video.mp4", "type": "video"},
+        {"source": "commentary.mp3", "type": "audio"}
+    ],
+    prompt="Analyze the video and commentary together"
+)
+```
+
+### 5. batch_understand 📦
+
+Process multiple files in parallel with the same prompt.
+
+**Examples:**
+
+```python
+# Batch OCR
+batch_understand(
+    sources=["page1.png", "page2.png", "page3.png"],
+    prompt="ocr",
+    output_format="json"
+)
+
+# Batch code review
+batch_understand(
+    sources=["file1.py", "file2.py", "file3.py"],
+    prompt="code_review"
+)
+```
+
+## Advanced Features
+
+### Structured Output
+
+```python
+# JSON format
+image_understand(source="photo.jpg", prompt="extract_info", output_format="json")
+
+# Table format
+audio_understand(source="meeting.mp3", prompt="meeting_notes", output_format="table")
+```
+
+### Streaming
+
+```python
+# Enable for long content
+video_understand(source="long-video.mp4", stream=True)
+```
+
+### Cache Control
+
+```python
+# Disable cache for fresh analysis
+image_understand(source="live.png", prompt="describe", use_cache=False)
+```
 
 ## File Size Limits
 
@@ -131,36 +211,25 @@ The plugin automatically estimates token usage for video files:
 | Audio | 50MB  | Error    |
 | Video | 50MB  | Temp HTTP server (up to 300MB) |
 
-## Examples
+## Token Usage
 
-### Analyze a screenshot
+Video auto-fps tuning:
 
-```python
-result = image_understand(
-    source="~/Desktop/screenshot.png",
-    prompt="Extract all text and explain what this UI does"
-)
-```
+| Duration | Auto fps | Estimated Tokens |
+|----------|----------|------------------|
+| < 10s    | 5.0      | ~3,000           |
+| < 1min   | 2.0      | ~7,000           |
+| < 5min   | 1.0      | ~35,000          |
+| < 10min  | 0.5      | ~35,000          |
+| 10min+   | 0.2      | ~14,000          |
 
-### Transcribe a podcast
+## Supported Formats
 
-```python
-result = audio_understand(
-    source="https://example.com/podcast.mp3",
-    prompt="transcribe"
-)
-```
-
-### Analyze security footage
-
-```python
-result = video_understand(
-    source="/recordings/camera1.mp4",
-    prompt="Describe any people or vehicles that appear",
-    fps=0.5,
-    media_resolution="max"
-)
-```
+| Type  | Formats |
+|-------|---------|
+| Image | JPEG, PNG, GIF, WebP, BMP |
+| Audio | MP3, WAV, FLAC, M4A, OGG, AAC, WMA |
+| Video | MP4, MOV, AVI, WMV, MKV, WEBM, FLV |
 
 ## Author
 
